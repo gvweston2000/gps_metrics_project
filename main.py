@@ -30,6 +30,10 @@ def main():
     print("\n[Missing Values]")
     print(df.isnull().sum())
 
+    log_step("Validating participation_id is a UUID format")
+    uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    df = df[df['participation_id'].astype(str).str.fullmatch(uuid_pattern)]
+
     log_step('Filtering out-of-bound positions')
     df = df[
         df['pitch_x'].between(-52.5, 52.5) &
