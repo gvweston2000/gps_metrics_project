@@ -50,5 +50,26 @@ def main():
     log_step("Saving cleaned dataset")
     df.to_csv("cleaned_dataset.csv", index=False)
 
+    log_step("Calculating per-row distance")
+    df['distance'] = df['speed_smoothed'].fillna(df['speed']) * 0.1
+
+    log_step("Grouping total distance per athlete")
+    total_distance = df.groupby('participation_id')['distance'].sum().reset_index()
+    total_distance.columns = ['participation_id', 'total_distance_m']
+
+    log_step("Calculating distance in speed zone 5")
+    zone5_mask = df['speed_smoothed'].fillna(df['speed']).between(5.5, 6.97)
+    zone5_distance = df[zone5_mask].groupby('participation_id')['distance'].sum().reset_index()
+    zone5_distance.columns = ['participation_id', 'zone5_distance_m']
+
+    log_step("Calculating top speed per athlete")
+    top_speed = df.groupby('participation_id')['speed_smoothed'].max().reset_index()
+    top_speed.columns = ['participation_id', 'top_speed_mps']
+
+    log_step("Combining leaderboard metrics")
+    leaderboard = total_distance.merge(zone5_distance, on='participation_id', how='left')
+    leaderboard = leaderboard.merge(top_speed, on='participation_id', how='left')
+    leaderboard.to_csv("leaderboard_metrics.csv", index=False)                   
+
 if __name__ == "__main__":
     main()
