@@ -69,7 +69,25 @@ def main():
     log_step("Combining leaderboard metrics")
     leaderboard = total_distance.merge(zone5_distance, on='participation_id', how='left')
     leaderboard = leaderboard.merge(top_speed, on='participation_id', how='left')
-    leaderboard.to_csv("leaderboard_metrics.csv", index=False)                   
+    leaderboard.to_csv("leaderboard_metrics.csv", index=False)
+
+    log_step("Create team heatmap")
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    plt.figure(figsize=(10,6))
+    sns.kdeplot(
+        x=df['pitch_x'], y=df['pitch_y'],
+        fill=True, cmap="mako", thresh=0, bw_adjust=1.5
+    )
+
+    plt.title("Team Heatmap (Time Spent On Pitch)")
+    plt.xlabel("Pitch X")
+    plt.ylabel("Pitch Y")
+    plt.xlim(-52.5, 52.5)
+    plt.ylim(-34, 34)
+    plt.savefig("team-heatmap.png")
+    plt.close()
 
 if __name__ == "__main__":
     main()
