@@ -30,5 +30,25 @@ def main():
     print("\n[Missing Values]")
     print(df.isnull().sum())
 
+    log_step('Filtering out-of-bound positions')
+    df = df[
+        df['pitch_x'].between(-52.5, 52.5) &
+        df['pitch_y'].between(-34, 34)
+    ]
+
+    log_step("Filtering unrealistic speeds")
+    df = df[df['speed'] <= 12]
+
+    log_step("Smoothing speeds")
+    df['speed_smoothed'] =  df.groupby('participation_id')['speed'].transform(
+        lambda s: s.rolling(window=3, center=True).mean()
+    )
+
+    log_step("Dropping rows with NaN or negative speeds")
+    df = df[df['speed'].notna() & (df['speed'] >= 0)]
+
+    log_step("Saving cleaned dataset")
+    df.to_csv("cleaned_dataset.csv", index=False)
+
 if __name__ == "__main__":
     main()
